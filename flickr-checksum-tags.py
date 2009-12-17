@@ -171,9 +171,10 @@ if options.md5 or options.sha1:
     if 0 == len(photo_elements):
         sys.exit(2)
     if 1 != len(photo_elements):
-        print "Expected exactly one result searching for tag "+search_tag+"; actually got "+str(len(photo_elements))
-        print "The returned data was:"
-        xml.etree.ElementTree.dump(photos)
+        print "Expected exactly 1 result searching for tag "+search_tag+"; actually got "+str(len(photo_elements))
+        print "The photos were:"
+        for p in photo_elements:
+            print "  http://www.flickr.com/photos/"+p.attrib['owner']+"/"+p.attrib['id']+" (\""+p.attrib['title']+"\")"
         sys.exit(3)
     photo = photo_elements[0]
     photo_id = photo.attrib['id']
