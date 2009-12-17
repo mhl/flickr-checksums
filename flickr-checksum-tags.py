@@ -117,7 +117,7 @@ def get_nsid(username_or_alias):
             return None
     return user.getchildren()[0].attrib['nsid']
 
-checksum_pattern = "[0-9a-f]{32}"
+checksum_pattern = "[0-9a-f]{32,40}"
 
 md5_machine_tag_prefix = "checksum:md5="
 sha1_machine_tag_prefix = "checksum:sha1="
@@ -129,11 +129,11 @@ def get_photo_checksums(photo):
     result = {}
     for t in info_result.getchildren()[0].find('tags'):
         m_md5 = re.search('^'+md5_machine_tag_prefix+'('+checksum_pattern+')$',t.attrib['raw'])
-        if m_md5:
+        if m_md5 and len(m_md5.group(1)) == 32:
             print "Got MD5sum machine tag"
             result['md5'] = m_md5.group(1)
         m_sha1 = re.search('^'+sha1_machine_tag_prefix+'('+checksum_pattern+')$',t.attrib['raw'])
-        if m_sha1:
+        if m_sha1 and len(m_sha1.group(1)) == 40:
             print "Got SHA1sum machine tag"
             result['sha1'] = m_sha1.group(1)
     return result
@@ -160,7 +160,7 @@ if options.md5 or options.sha1:
     else:
         if not re.search('^'+checksum_pattern+'$',options.sha1):
             print "The SHA1sum ('"+options.sha1+"') was malformed."
-            print "It must be 32 letters long, each one of 0-9 or a-f."
+            print "It must be 40 letters long, each one of 0-9 or a-f."
             sys.exit(1)
         search_tag = sha1_machine_tag_prefix + tag
     photos = flickr.photos_search(user_id="me",tags=search_tag)
