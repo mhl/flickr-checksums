@@ -1,5 +1,8 @@
 #!/usr/bin/env python2.5
 
+# This depends on a couple of packages:
+#   apt-get install python-pysqlite2 python-flickrapi
+
 import os
 import sys
 import re
@@ -8,10 +11,24 @@ import tempfile
 from subprocess import call, Popen, PIPE
 import flickrapi
 from optparse import OptionParser
+from pysqlite2 import dbapi2 as sqlite
 
 flickr_api_filename = os.path.join(os.environ['HOME'],'.flickr-api')
 if not os.path.exists(flickr_api_filename):
     print "You must put your Flickr API key and secret in "+flickr_api_filename
+
+db_filename = os.path.join(os.environ['HOME'],'.flickr-photos-checksummed.db')
+connection = sqlite.connect(db_filename)
+cursor = connection.cursor()
+cursor.execute("CREATE TABLE IF NOT EXISTS done ( photo_id text unique )")
+
+def already_done(photo_id):
+    cursor.execute("SELECT * FROM done WHERE photo_id = ?", (photo_id,))
+    return len(cursor.fetchall()) > 0
+
+def add_to_done(photo_id):
+    cursor.execute("INSERT INTO done ( photo_id ) VALUES ( ? )", (photo_id,))
+    connection.commit()
 
 configuration = {}
 for line in open(flickr_api_filename):
@@ -179,6 +196,8 @@ else:
             title = photo.attrib['title']
             print "====="+title+"====="
             id = photo.attrib['id']
+            if already_done(id):
+                continue
             print "Photo page URL is: "+photos_url+id
             info_result = flickr.photos_getInfo(photo_id=id)
             # Check if the checksums are already there:
@@ -211,6 +230,7 @@ else:
                 flickr.photos_addTags(photo_id=id, tags=sha1_machine_tag_prefix+real_sha1sum)
                 print "... done.  Removing temporary file."
                 call(["rm",f.name])
+            add_to_done(id)
         if len(photo_elements) < per_page:
             break
         page += 1
