@@ -136,6 +136,9 @@ def get_photo_checksums(photo):
         if m_sha1 and len(m_sha1.group(1)) == 40:
             print "Got SHA1sum machine tag"
             result['sha1'] = m_sha1.group(1)
+        elif m_sha1 and len(m_sha1.group(1)) == 32:
+            print "Found a truncated SHA1sum tag, so removing it:"
+            flickr.photos_removeTag(tag_id=t.attrib['id'])
     return result
 
 def info_to_url(info_result,size=""):
@@ -202,6 +205,7 @@ else:
             info_result = flickr.photos_getInfo(photo_id=id)
             # Check if the checksums are already there:
             existing_checksums = get_photo_checksums(photo)
+            print "Existing checksums were: "+", ".join(existing_checksums.keys())
             if ('md5' in existing_checksums) and ('sha1' in existing_checksums):
                 # Then there's no need to download the image...
                 pass
