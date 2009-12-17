@@ -40,7 +40,7 @@ for line in open(flickr_api_filename):
     if not m:
         print "Each line of "+flickr_api_filename+" must be either empty"
         print "or of the form 'key = value'"
-        sys.exit(2)
+        sys.exit(1)
     continue
 
 if not ('api_key' in configuration and 'api_secret' in configuration):
@@ -168,6 +168,8 @@ if options.md5 or options.sha1:
         search_tag = sha1_machine_tag_prefix + tag
     photos = flickr.photos_search(user_id="me",tags=search_tag)
     photo_elements = photos.getchildren()[0]
+    if 0 == len(photo_elements):
+        sys.exit(2)
     if 1 != len(photo_elements):
         raise Exception, "Expected exactly one result searching for tag "+search_tag+"; actually got "+str(len(photo_elements))
     photo = photo_elements[0]
