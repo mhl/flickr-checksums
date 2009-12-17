@@ -171,7 +171,10 @@ if options.md5 or options.sha1:
     if 0 == len(photo_elements):
         sys.exit(2)
     if 1 != len(photo_elements):
-        raise Exception, "Expected exactly one result searching for tag "+search_tag+"; actually got "+str(len(photo_elements))
+        print "Expected exactly one result searching for tag "+search_tag+"; actually got "+str(len(photo_elements))
+        print "The returned data was:"
+        xml.etree.ElementTree.dump(photos)
+        sys.exit(3)
     photo = photo_elements[0]
     photo_id = photo.attrib['id']
     photo_info = flickr.photos_getInfo(photo_id=photo_id)
