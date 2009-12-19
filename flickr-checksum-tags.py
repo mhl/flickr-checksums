@@ -11,26 +11,7 @@ import tempfile
 from subprocess import call, Popen, PIPE
 import flickrapi
 from optparse import OptionParser
-
-flickr_api_filename = os.path.join(os.environ['HOME'],'.flickr-api')
-if not os.path.exists(flickr_api_filename):
-    print "You must put your Flickr API key and secret in "+flickr_api_filename
-
-configuration = {}
-for line in open(flickr_api_filename):
-    if len(line.strip()) == 0:
-        continue
-    m = re.search('\s*(\S+)\s*=\s*(\S+)\s*$',line)
-    if m:
-        configuration[m.group(1)] = m.group(2)
-    if not m:
-        print "Each line of "+flickr_api_filename+" must be either empty"
-        print "or of the form 'key = value'"
-        sys.exit(1)
-    continue
-
-if not ('api_key' in configuration and 'api_secret' in configuration):
-    print "Both api_key and api_secret must be defined in "+flickr_api_filename
+from common import *
 
 # There are more details about the meaning of these size
 # codes here:
@@ -102,11 +83,6 @@ def get_nsid(username_or_alias):
         except flickrapi.exceptions.FlickrError, e:
             return None
     return user.getchildren()[0].attrib['nsid']
-
-checksum_pattern = "[0-9a-f]{32,40}"
-
-md5_machine_tag_prefix = "checksum:md5="
-sha1_machine_tag_prefix = "checksum:sha1="
 
 # Return a dictionary with any machine tag checksums found for a photo
 # element:
@@ -225,16 +201,8 @@ else:
                 f.close()
                 print "farm_url is: "+farm_url
                 call(["curl","--location","-o",f.name,farm_url])
-                md5sum_result = Popen(["md5sum",f.name],stdout=PIPE).communicate()[0]
-                sha1sum_result = Popen(["sha1sum",f.name],stdout=PIPE).communicate()[0]
-                m = re.search('^('+checksum_pattern+')',md5sum_result.strip())
-                if not m:
-                    raise Exception, "Result from md5sum was unexpected: "+md5sum_result
-                real_md5sum = m.group(1)
-                m = re.search('^('+checksum_pattern+')',sha1sum_result.strip())
-                if not m:
-                    raise Exception, "Result from sha1sum was unexpected: "+sha1sum_result
-                real_sha1sum = m.group(1)
+                real_md5sum = md5sum(f.name)
+                real_sha1sum = sha1sum(f.name)
                 print "Calculated MD5: "+real_md5sum
                 print "Calculated SHA1: "+real_sha1sum
                 print "Setting tags..."
