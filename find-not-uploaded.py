@@ -30,10 +30,10 @@ for filename in args:
     c = p.communicate()
     if 0 == p.returncode:
         if options.verbose:
-            print "  ...already uploaded"
+            print "  ... already uploaded"
             print "  "+c[0].strip()
     else:
         if options.verbose:
-            print "  ...not uploaded"
+            print "  ... not uploaded"
         else:
             print filename
