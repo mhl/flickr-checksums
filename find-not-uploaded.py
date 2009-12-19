@@ -32,6 +32,9 @@ for filename in args:
         if options.verbose:
             print "  ... already uploaded"
             print "  "+c[0].strip()
+    elif 3 == p.returncode:
+        if options.verbose:
+            print "  ... multiple copies uploaded"
     else:
         if options.verbose:
             print "  ... not uploaded"
