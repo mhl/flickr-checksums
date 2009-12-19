@@ -8,6 +8,7 @@ import sys
 import re
 import xml
 import tempfile
+import time
 from subprocess import call, Popen, PIPE
 import flickrapi
 from optparse import OptionParser
@@ -210,6 +211,7 @@ else:
                 flickr.photos_addTags(photo_id=id, tags=sha1_machine_tag_prefix+real_sha1sum)
                 print "... done.  Removing temporary file."
                 call(["rm",f.name])
+            time.sleep(2)
             add_to_done(id)
         if len(photo_elements) < per_page:
             break
