@@ -11,24 +11,10 @@ import tempfile
 from subprocess import call, Popen, PIPE
 import flickrapi
 from optparse import OptionParser
-from pysqlite2 import dbapi2 as sqlite
 
 flickr_api_filename = os.path.join(os.environ['HOME'],'.flickr-api')
 if not os.path.exists(flickr_api_filename):
     print "You must put your Flickr API key and secret in "+flickr_api_filename
-
-db_filename = os.path.join(os.environ['HOME'],'.flickr-photos-checksummed.db')
-connection = sqlite.connect(db_filename)
-cursor = connection.cursor()
-cursor.execute("CREATE TABLE IF NOT EXISTS done ( photo_id text unique )")
-
-def already_done(photo_id):
-    cursor.execute("SELECT * FROM done WHERE photo_id = ?", (photo_id,))
-    return len(cursor.fetchall()) > 0
-
-def add_to_done(photo_id):
-    cursor.execute("INSERT INTO done ( photo_id ) VALUES ( ? )", (photo_id,))
-    connection.commit()
 
 configuration = {}
 for line in open(flickr_api_filename):
@@ -185,6 +171,22 @@ if options.md5 or options.sha1:
     else:
         print info_to_url(photo_info,size=options.size)
 else:
+    # Only require sqlite if we're actually adding checksum tags:
+    from pysqlite2 import dbapi2 as sqlite
+
+    db_filename = os.path.join(os.environ['HOME'],'.flickr-photos-checksummed.db')
+    connection = sqlite.connect(db_filename)
+    cursor = connection.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS done ( photo_id text unique )")
+
+    def already_done(photo_id):
+        cursor.execute("SELECT * FROM done WHERE photo_id = ?", (photo_id,))
+        return len(cursor.fetchall()) > 0
+
+    def add_to_done(photo_id):
+        cursor.execute("INSERT INTO done ( photo_id ) VALUES ( ? )", (photo_id,))
+        connection.commit()
+
     nsid = get_nsid(options.add_tags)
     if not nsid:
         print "Couldn't find the username or alias '"+options.add_tags
