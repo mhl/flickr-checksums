@@ -37,6 +37,8 @@ parser.add_option('-p', dest='photo_page', default=False, action='store_true',
                   help='Output the photo page URL (the default with -m and -s)')
 parser.add_option('--size',dest='size',metavar='SIZE',
                    help='Output the URL for different sized images ('+valid_size_codes_sentence+')')
+parser.add_option('--short',dest='short', default=False, action='store_true',
+                   help='Output the short URL for the image')
 
 options,args = parser.parse_args()
 
@@ -53,7 +55,7 @@ if options.photo_page and options.size:
     parser.print_help()
     sys.exit(1)
 
-just_photo_page_url = not options.size
+just_photo_page_url = not (options.size or options.short)
 
 if options.size and (options.size not in valid_size_codes):
     print "The argument to --size must be one of: "+valid_size_codes_sentence
@@ -145,8 +147,10 @@ if options.md5 or options.sha1:
     if just_photo_page_url:
         user_info = flickr.people_getInfo(user_id=photo.attrib['owner'])
         print user_info.getchildren()[0].find('photosurl').text+photo_id
-    else:
+    elif options.size:
         print info_to_url(photo_info,size=options.size)
+    if options.short:
+        print short_url(photo_id)
 else:
     # Only require sqlite if we're actually adding checksum tags:
     from pysqlite2 import dbapi2 as sqlite
